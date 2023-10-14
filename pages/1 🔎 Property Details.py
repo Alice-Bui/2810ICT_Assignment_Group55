@@ -60,4 +60,4 @@ if searched:
         st.subheader("Available AirBnB Listings:")
         st.dataframe(output)
     else:
-        st.markdown(st.markdown("You have not chosen your desired period"))
+        st.markdown("You have not chosen your desired period")
