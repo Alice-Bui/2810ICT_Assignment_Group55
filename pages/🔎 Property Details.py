@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+import re
 
 # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title="Sydney Airbnb Listings",
@@ -13,13 +14,13 @@ def load_data(url):
     return df
 df1 = load_data(r"./calendar_dec18.csv").dropna()
 
-if 'df2' not in st.session_state: #in case homepage has not been clicked/not finished loading the data
+if 'df2' not in st.session_state: #in case homepage/reviews has not been clicked/not finished loading the data
     df2 = load_data(r"./listings_dec18.csv")
     st.session_state['df2'] = df2
 else:
     df2 = st.session_state['df2']
 
-#selected period & city
+#selected period & city & keyword
 with st.form("filtering"):
     col1, col2 = st.columns((2))
     df1["date"] = pd.to_datetime(df1["date"])
@@ -32,6 +33,8 @@ with st.form("filtering"):
 
     city = st.multiselect("Select the Suburb:", df2["city"].unique())
 
+    keyWord = st.text_input("Description Keyword")
+
     #search button:
     searched = st.form_submit_button("Search", type="primary")
 
@@ -41,12 +44,17 @@ if searched:
         selected_id = selected_period['listing_id'].unique()
         selected_df = df2[df2['id'].isin(selected_id)][['id', 'listing_url', 'city', 'description', ]]
         if not city:
+            selected_df = selected_df
+        else:
+            selected_df = selected_df[selected_df["city"].isin(city)]
+
+        if not keyWord:
             output = selected_df
         else:
-            output = selected_df[selected_df["city"].isin(city)]
+            output = selected_df[selected_df['description'].str.contains(keyWord, na=False, flags=re.IGNORECASE, regex=True)]
 
-        st.subheader("Price Range")
-        fig = px.histogram(selected_period, x = "price", nbins=70)
+        st.subheader("Price Range in the Selected Period")
+        fig = px.histogram(selected_period, x="price", nbins=70)
         st.plotly_chart(fig, use_container_width=True, height=200)
 
         st.subheader("Available AirBnB Listings:")
