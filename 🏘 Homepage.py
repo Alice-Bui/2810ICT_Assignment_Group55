@@ -8,12 +8,19 @@ st.set_page_config(
 st.title("Sydney Airbnb Listings")
 st.sidebar.success("Select a page above")
 @st.cache_data
-def load_data(url):
-    df = pd.read_csv(url)
+def load_data(url, dtype):
+    df = pd.read_csv(url, dtype=dtype)
     return df
 
-if 'df2' not in st.session_state: #in case homepage has been clicked first
-    df2 = load_data(r"./listings_dec18.csv")
+if 'df2' not in st.session_state:
+    dtype = {
+        'zipcode': str,
+        'weekly_price': str,
+        'monthly_price': str,
+        'license': object,
+    }
+    df2 = load_data(r"./listings_dec18.csv", dtype=dtype)
+    df2.dropna(axis=1, how='all', inplace=True)
     st.session_state['df2'] = df2
 else:
     df2 = st.session_state['df2']

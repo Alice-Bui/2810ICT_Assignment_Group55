@@ -2,24 +2,29 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 import re
-
 # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title="Sydney Airbnb Listings",
                    page_icon="🔎",)
 st.title("Property Details")
 st.sidebar.success("Select a page above")
 @st.cache_data
-def load_data(url):
-    df = pd.read_csv(url)
+def load_data(url, dtype):
+    df = pd.read_csv(url, dtype=dtype)
     return df
-df1 = load_data(r"./calendar_dec18.csv").dropna()
 
-if 'df2' not in st.session_state: #in case homepage/reviews has not been clicked/not finished loading the data
-    df2 = load_data(r"./listings_dec18.csv")
+if 'df2' not in st.session_state:
+    dtype = {
+        'zipcode': str,
+        'weekly_price': str,
+        'monthly_price': str,
+        'license': object,
+    }
+    df2 = load_data(r"./listings_dec18.csv", dtype=dtype)
+    df2.dropna(axis=1, how='all', inplace=True)
     st.session_state['df2'] = df2
 else:
     df2 = st.session_state['df2']
-
+df1 = load_data(r"./calendar_dec18.csv", None).dropna()
 #selected period & city & keyword
 with st.form("filtering"):
     col1, col2 = st.columns((2))
@@ -30,14 +35,10 @@ with st.form("filtering"):
         date1 = pd.to_datetime(st.date_input("Start Date", value=None, min_value=startDate, max_value=endDate))
     with col2:
         date2 = pd.to_datetime(st.date_input("End Date", value=None, min_value=startDate, max_value=endDate))
-
     city = st.multiselect("Select the Suburb:", df2["city"].unique())
-
     keyWord = st.text_input("Description Keyword")
-
     #search button:
     searched = st.form_submit_button("Search", type="primary")
-
 if searched:
     if date1 and date2:
         selected_period = df1[(df1["date"] >= date1) & (df1["date"] <= date2)]
@@ -61,3 +62,4 @@ if searched:
         st.dataframe(output)
     else:
         st.markdown("You have not chosen your desired period")
+
