@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 import re
-import plotly.express as px
 
 # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title="Sydney Airbnb Listings",
